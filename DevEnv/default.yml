@@ -1,0 +1,67 @@
+---
+# Fedora image variables
+fedora_mirror: download.fedoraproject.org
+
+# User variables
+macos_user_group: staff # default for macOS
+email: "{{ vm_user_name }}@aiven.io"
+
+# GPG
+gpg_bin_dir: /opt/homebrew/bin
+pinentry_bin_path: /opt/homebrew/bin/pinentry-mac
+
+# VM settings
+# Parallels does require quite a bit of resources to perform fluidly.
+vm_cpus: 4
+vm_memsize_mb: 4000 # in megabytes, 32GiB
+# For Lima/Vagrant VM only
+vm_disksize_gb: 100 # in gigabytes
+
+# VM extras
+vm_synced_paths: []
+vm_ensured_dirs: []
+vm_extra_packages: []
+
+# Lima specific settings
+lima_vm_type: "vz" # or qemu
+# lima_vm_mount_type: "virtiofs"  # Specify if need to change the default
+lima_mount_host_home_writable: false # Sets writable flag for host home mount
+lima_additional_disks: # Additional disks are not created, just attached
+#  - data
+
+# The packages below are required to work in the dev environment
+vm_required_packages:
+  - bash
+  - bash-completion
+  - findutils
+  - "glibc-langpack-*"
+  - git
+  - gopass
+  - iputils
+  - make
+  - mock
+  - openssh-clients
+  - patch
+  - pinentry-tty
+  - podman
+  - pre-commit
+  - python3-pycodestyle
+  - pwgen
+  - rpm-build
+  - rsync
+  - toolbox
+  - util-linux-user
+  - xclip
+  - zsh
+
+vm_gui_required_packages:
+  - copyq
+  - git-cola
+  - peek
+  - pinentry-gnome3
+  - snapd
+
+# Configure the VM to use cloudflare DNS server
+configure_cloudflare_dns: false
+
+configure_prod_access: false

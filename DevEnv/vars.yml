@@ -1,0 +1,147 @@
+# Specify virtualization software to use
+virtualization_tool: lima # Supported values: parallels, lima
+
+# Fedora image and version variables
+fedora_arch: aarch64 # or x86_64
+fedora_release: 39 # other examples: 38_Beta, 38, 39
+fedora_version: 39-1.5 # other examples: 38_Beta-1.3, 38-1.6
+fedora_release_human: "{{ fedora_release | lower | replace('_', '-') }}"
+# Editions: Server has no GUI, Workstation has GNOME
+# Supported values: Server, Cloud, Workstation. Override the value if you want to use Workstation.
+fedora_edition: Cloud #"{{ 'Cloud' if is_lima_vm else 'Server' }}"
+# To find the SHA for the Fedora release, visit the Fedora release site at
+# https://download.fedoraproject.org/pub/fedora/linux/releases/39/ or
+# https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/ for
+# previous releases.
+#
+# From there, navigate to the folder that matches your `fedora_edition` and
+# `fedora_arch` values and download the CHECKSUM file.
+#
+# If you're using `fedora_edition: Cloud`, use the SHA for the .qcow2 extension.
+# For all other editions, use the SHA for the .iso extension.
+#fedora_sha256_digest: "sha256:d19dc2a39758155fa53e6fd555d0d173ccc8175b55dea48002d499f39cb30ce0"
+fedora_sha256_digest: "sha256:765996d5b77481ca02d0ac06405641bf134ac920cfc1e60d981c64d7971162dc"
+
+# Shell to configure on macOS and in the VM
+shell: zsh # Supported values: zsh, bash, fish
+shell_startup_file: ".{{ shell }}rc" # Set to '.config/fish/config.fish' if using fish shell
+
+# VM variables
+vm_hostname: "dev{{ fedora_release }}"
+vm_ssh_forwarded_port: 2200
+# The default is maintaining a single user with sudo privileges whose name matches the macOS one.
+# Set to 'lima' when using lima, macos_user_name when using Parallels.
+vm_admin_username: "{{ is_lima_vm | ternary('lima', macos_user_name) }}"
+vm_user_name: "{{ macos_user_name }}"
+# Whether to install Guest Tools and configure shared aiven home dir mount
+vm_configure_parallels: true
+# Whether to run `make build-dep-fedora` in the aiven-core repo.
+# Does not work correctly with virtiofs and lima ($PWD is incorrect when running make)
+vm_build_fedora_deps: false
+
+# User variables
+macos_user_name: vasilii.mikhailov # firstname.lastname
+full_name: Vasilii Mikhailov # Firstname Lastname
+# Timezone used for the VM (not the host system). Example timezones:
+# America/Toronto, Europe/Helsinki, Asia/Tokyo, Australia/Sydney
+# Complete list: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+user_timezone: Europe/Helsinki
+
+# SSH
+# The key used to connect to the VM.
+# - If set, the playbook will try to find the key in `~/.ssh/{{  ssh_key_filename }}`
+# - If not set, the playbook will default to `gpg --export-ssh-key {{ gpg_keyid }}`
+ssh_key_filename: lima
+
+# GPG
+# If you already have a key you'd like to sign your commits with, set it below.
+# This should be the signing key ([S]). Otherwise, the playbook will try to find it.
+# If it doesn't find it, it will create a new one with the passphrase set below.
+# If no passphrase is passed the GPG step will fail.
+gpg_keyid: E8E8C4F663D14CE6E63D99C5FD0A0632357DC603
+gpg_passphrase: 1q2w3e4r
+
+# Git editor configuration (not touched if the variable is empty)
+git_editor:
+# By default, git is configured globally for the macOS and Fedora dev user.
+# If you only want to configure it for the aiven-core repo,
+# 1. change the scope to 'local', and
+# 2. change the scope repo variable to aiven-core's path e.g ~/Projects/aiven-core
+# See https://git-scm.com/docs/git-config for an explanation of the different scopes
+git_config_scope: global
+git_config_scope_repo:
+
+# Path variables
+
+# Location for Aiven's repos in your tree.
+# Provide the relative path from your home dir below.
+# E.g. f you store the aiven-core repo under ~/Projects/aiven-core
+aiven_home_dir: aiven_git/aiven
+# This will be exported as the AIVEN_DEV_CLOUD env.var and used
+aiven_dev_cloud: google-europe-west1
+# If set, exports the value to AIVEN_RPM_BUILD_PATH. RPM packages will be built in this directory.
+# Some packages need to create symbolic links, which is not possible in a Parallels shared folder.
+# Building them in tmpfs allows creating symlinks, but means the artefacts are lost after restarts.
+aiven_rpm_build_path: /tmp/aiven-rpms
+
+# macOS bootstrap
+
+# Extra packages you may want to install in one go.
+macos_extra_brew_packages:
+  - gpg
+  - rsync
+#  - emacs
+#  - fzf
+#  - gh
+#  - neovim
+#  - ripgrep
+#  - tmux
+#  ...
+
+# VM settings
+
+# Size to use for the root disk, it's 15G by default and needs to be resized
+vm_resizefs_size: 120G
+
+# Paths to be rsynced on the VM.
+# They must be absolute, and as per rsync convention, directories must end with a slash.
+# In case of nested directories, list the prefix in the vm_ensured_dirs variable
+# below or rsync will fail.
+# vm_synced_paths:
+#  - src: "{{ (macos_home, shell_startup_file) | path_join }}"
+#    dest: "{{ (vm_home, shell_startup_file) | path_join }}"
+#  - src: "{{ (macos_home, '.tmux.conf') | path_join }}"
+#    dest: "{{ (vm_home, '.tmux.conf') | path_join }}"
+
+# The following directories will be created if they don't exist on the VM.
+# They should be provided as absolute paths.
+# The directory mode is set to 0750 by default, it can be set as done for the .config dir below.
+# vm_ensured_dirs:
+#  - path: "{{ (vm_home, aiven_home_dir) | path_join }}"
+#  - path: "{{ (vm_home, '.cache') | path_join }}"
+#  - name: "{{ (vm_home, '.config') | path_join }}"
+#    mode: "0700"
+
+# Extra packages to install in the VM.
+# vm_extra_packages:
+#  - emacs
+#  - fzf
+#  - jq
+#  - neovim
+#  - ripgrep
+#  - tmux
+
+# Fedora jumpbox settings
+
+jumpbox_cloud: "{{ aiven_dev_cloud }}"
+jumpbox_node: a8
+jumpbox_container_version: "{{ fedora_release }}"
+
+jumpbox_options:
+  - "--cloud {{ jumpbox_cloud }}"
+  - "--node {{ jumpbox_node }}"
+  - "--cont-ver {{ jumpbox_container_version }}"
+  - --clone-aiven-core
+  - --dont-run-make-build-dep-fedora
+  - --copy-user-config
+  - --use-public-mirror
