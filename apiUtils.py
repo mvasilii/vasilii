@@ -1,7 +1,8 @@
 import subprocess
 import json
 import os
-#import re
+import re
+import requests
 
 def load_session():
     """Load the session token from the environment if it exists."""
@@ -61,15 +62,30 @@ def get_token(note_title):
 
         if note_item['fields']:
             secure_note = note_item['fields'][0]['value']  # Adjust if necessary
-            #print("Token retrieved.")
+            print("Token retrieved.")
             return secure_note
         else:
             print("No fields found in the secure note.")
             return None
-
     except subprocess.CalledProcessError as e:
         print(f"Error fetching secure note: {e.stderr.strip()}")
         return None
     except Exception as e:
         print(f"An unexpected error occurred while fetching the note: {e}")
         return None
+
+# Function to update service state
+def update_service_power(token, project, service, power_on):
+    url = f"https://api.aiven.io/v1/project/{project}/service/{service}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    data = {"powered": power_on}
+
+    response = requests.patch(url, headers=headers, json=data)
+    
+    if response.status_code == 200:
+        print(f"Service {service} power updated successfully.")
+    else:
+        print(f"Failed to update service power. Status code: {response.status_code}, Response: {response.text}")

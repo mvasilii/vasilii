@@ -1,6 +1,5 @@
 #!/bin/zsh
-# This script checks if the NFS fileshare is mounted and accessible. 
-# It also tries to autorecover the NFS fileshare by automounting the folder.
+# This script turns on/off Aiven services (Ops access required)
 # Usage: bash turn_services.sh on/off
 #
 
@@ -8,6 +7,17 @@
 #[[ -f ~/.aiven/rc.sh ]] && source ~/.aiven/rc.sh
 alias avn-prod='python3 -m aiven.admin --config op://private/aivendb_readonly/notesPlain'
 
+msg() {
+  echo >&2 -e "Aiven Services Turn On/Off: ${1-}"
+  logger "Aiven Services Turn On/Off: $1"
+}
+
+die() {
+  local msg=$1
+  local code=${2-1} # default exit status 1
+  msg "$msg"
+  exit "$code"
+}
 
 # Check argument
 [[ $# -ne 1 ]] && {
@@ -20,17 +30,9 @@ alias avn-prod='python3 -m aiven.admin --config op://private/aivendb_readonly/no
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 # Set the path to services.txt in the same folder as the script
-fs="$SCRIPT_DIR/services_id.txt"
-#fs="services_id.txt"
-#echo "Current PATH: $PATH"
-#fs="/home/vasilii.mikhailov/aiven_git/aiven/vasilii/services/services_id.txt"
-# Check if services.txt exists
-if [[ ! -f "$fs" ]]; then
-  echo "File $fs not found. Please ensure it exists in the same directory as the script."
-  exit 1
-fi
+fs="$SCRIPT_DIR/services_id.txt1"
 
-cd /home/vasilii.mikhailov/aiven_git/aiven/aiven-core
+cd $AIVEN_CORE_PATH
 # Array to store services
 services=()
 
@@ -47,25 +49,32 @@ load_services_to_array() {
 }
 
 main(){
+  # Check if services.txt exists
+  if [[ ! -f "$fs" ]]; then
+    die "File $fs not found. Please ensure it exists in the same directory as the script." 1
+  fi
+  
   # Load services from the file
   load_services_to_array "$fs"
 
   # Enter pass for 1 password
-  # eval $( op signin )
+  eval $( op signin )
   # Process based on input (on/off)
   case "$1" in
     on)
       msg "Turning services on."
       for service in "${services[@]}"; do
         msg "Turning on service: $service"
-        avn-prod service poweron $service --customer-reason "API test" --yes
+        # Commented out for dry-run
+        #avn-prod service poweron $service --customer-reason "API test" --yes
       done
       ;;
     off)
       msg "Turning services off."
       for service in "${services[@]}"; do
         msg "Turning off service: $service"
-        avn-prod service poweroff $service --customer-reason "API test" --yes
+        # Commented out for dry-run
+        #avn-prod service poweroff $service --customer-reason "API test" --yes
       done
       ;;
     *)
@@ -75,16 +84,6 @@ main(){
   die "Done." 0
 }
 
-msg() {
-  echo >&2 -e "Aiven Services Turn On/Off: ${1-}"
-  logger "Aiven Services Turn On/Off: $1"
-}
 
-die() {
-  local msg=$1
-  local code=${2-1} # default exit status 1
-  msg "$msg"
-  exit "$code"
-}
 
 main "$1"
