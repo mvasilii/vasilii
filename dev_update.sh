@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/vasilii.mikhailov/aiven_git/aiven/aiven-core
+cd $AIVEN_CORE_PATH
 git fetch --all
 git checkout main
 git pull origin main
