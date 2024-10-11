@@ -1,5 +1,6 @@
-#!/bin/bash
+#!/bin/zsh
 
+sudo systemctl restart chronyd
 cd $AIVEN_CORE_PATH
 git fetch --all
 git checkout main
