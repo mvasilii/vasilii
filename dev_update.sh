@@ -7,4 +7,4 @@ git checkout main
 git pull origin main
 make build-dep-fedora
 make
-aprod prod checkout-prod
+#aprod prod checkout-prod
