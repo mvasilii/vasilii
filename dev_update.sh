@@ -8,3 +8,4 @@ git pull origin main
 make build-dep-fedora
 make
 #aprod prod checkout-prod
+#avn-admin prod checkout-prod
