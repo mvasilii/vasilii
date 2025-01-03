@@ -25,10 +25,16 @@ resource "aiven_pg_database" "sample_db" {
 }
 
 # PostgreSQL user
-resource "aiven_pg_user" "sample_user" {
+resource "aiven_pg_user" "vasilii" {
   project      = var.project_name
   service_name = aiven_pg.samplepg.service_name
   username     = "vasilii"
+}
+
+resource "aiven_pg_user" "test_user" {
+  project      = var.project_name
+  service_name = aiven_pg.samplepg.service_name
+  username     = "test_user"
 }
 
 # PostgreSQL connection pool
@@ -37,7 +43,7 @@ resource "aiven_connection_pool" "sample_pool" {
   service_name  = aiven_pg.samplepg.service_name
   database_name = aiven_pg_database.sample_db.database_name
   pool_name     = "samplepool"
-  username      = aiven_pg_user.sample_user.username
+  username      = aiven_pg_user.vasilii.username
 
   depends_on = [
     aiven_pg_database.sample_db,

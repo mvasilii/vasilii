@@ -1,0 +1,6 @@
+export TERRA_TOKEN=...
+terraform init -var="aiven_api_token=${TERRA_TOKEN}"
+terraform plan -var="aiven_api_token=${TERRA_TOKEN}"
+terraform apply --auto-approve -var="aiven_api_token=${TERRA_TOKEN}"
+terraform plan -destroy -var="aiven_api_token=${TERRA_TOKEN}"
+terraform destroy -var="aiven_api_token=${TERRA_TOKEN}"
